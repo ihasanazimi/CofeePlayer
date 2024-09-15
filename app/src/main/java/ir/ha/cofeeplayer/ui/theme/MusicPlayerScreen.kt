@@ -4,19 +4,21 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SliderColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,10 +51,11 @@ fun MusicPlayerScreen(
     albumName: String = "Unknown",
     songCover: SongCover = SongCover.Drawable(R.drawable.cover),
     isPlaying: Boolean = false,
+    isMute: Boolean = false,
     isRepeatOn: Boolean = false,
     isShuffleOn: Boolean = false,
     isFavorite: Boolean = false,
-    totalDuration: Int = 30, // مدت زمان کل آهنگ به ثانیه
+    totalDuration: Int = 62, // مدت زمان کل آهنگ به ثانیه
     onPlayPauseClicked: () -> Unit = {},
     onNextClicked: () -> Unit = {},
     onPreviousClicked: () -> Unit = {},
@@ -60,7 +63,8 @@ fun MusicPlayerScreen(
     onShuffleClicked: () -> Unit = {},
     onFavoriteClicked: () -> Unit = {},
     onBackClicked: () -> Unit = {},
-    onMoreClicked: () -> Unit = {}
+    onMoreClicked: () -> Unit = {},
+    onMuteClicked: () -> Unit = {}
 ) {
 
     val context = LocalContext.current
@@ -77,6 +81,7 @@ fun MusicPlayerScreen(
             }
             if (currentTime >= totalDuration) {
                 currentTime = totalDuration // اطمینان از رسیدن به انتهای آهنگ
+                return@LaunchedEffect
             }
         }
     }
@@ -90,25 +95,67 @@ fun MusicPlayerScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Top Row (Back and More Icons)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBackClicked) {
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color.Black
+        Box(modifier = Modifier.fillMaxWidth()) {
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(id = if(isMute) R.drawable.mute else R.drawable.unmute),
+                    contentDescription = "Mute",
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = androidx.compose.material3.ripple(
+                                bounded = false, // Borderless ripple
+                                color = MaterialTheme.colorScheme.primary
+                            ),
+                            onClick = {
+                                onMuteClicked.invoke()
+                            }
+                        )
+                )
+
+
+                Spacer(modifier = Modifier.padding(horizontal = 4.dp))
+
+
+                Image(
+                    painter = painterResource(id = R.drawable.more),
+                    contentDescription = "More",
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = androidx.compose.material3.ripple(
+                                bounded = false, // Borderless ripple
+                                color = MaterialTheme.colorScheme.primary
+                            ),
+                            onClick = {
+                                onMoreClicked.invoke()
+                            }
+                        )
                 )
             }
 
+
+
             Image(
-                painter = painterResource(id = R.drawable.more),
-                contentDescription = "More",
+                painter = painterResource(id = R.drawable.back_pressed),
+                contentDescription = "Back",
                 modifier = Modifier
                     .size(30.dp)
-                    .clickable { onMoreClicked.invoke() }
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = androidx.compose.material3.ripple(
+                            bounded = false, // Borderless ripple
+                            color = MaterialTheme.colorScheme.primary
+                        ),
+                        onClick = { onBackClicked.invoke() }
+                    )
             )
         }
 
@@ -120,6 +167,8 @@ fun MusicPlayerScreen(
             },
             contentDescription = albumName,
             modifier = Modifier
+                .background(Color.LightGray, RoundedCornerShape(8))
+                .border(1.dp, Color.Gray, RoundedCornerShape(8))
                 .size(200.dp)
                 .clip(CircleShape),
             contentScale = ContentScale.Crop
@@ -158,7 +207,16 @@ fun MusicPlayerScreen(
                 contentDescription = "Favorite",
                 modifier = Modifier
                     .size(32.dp)
-                    .clickable { onFavoriteClicked.invoke() },
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = androidx.compose.material3.ripple(
+                            bounded = false, // Borderless ripple
+                            color = MaterialTheme.colorScheme.primary
+                        ),
+                        onClick = {
+                            onFavoriteClicked.invoke()
+                        }
+                    ),
             )
 
             // Progress Bar
@@ -194,8 +252,16 @@ fun MusicPlayerScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = formatTime(currentTime), color = Color.Gray, fontSize = 14.sp) // زمان جاری
-                Text(text = formatTime(totalDuration), color = Color.Gray, fontSize = 14.sp) // مدت زمان کل
+                Text(
+                    text = formatTime(currentTime),
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                ) // زمان جاری
+                Text(
+                    text = formatTime(totalDuration),
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                ) // مدت زمان کل
             }
         }
 
@@ -203,7 +269,7 @@ fun MusicPlayerScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 64.dp),
+                .padding(bottom = 34.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -214,7 +280,16 @@ fun MusicPlayerScreen(
                 contentDescription = "Shuffle",
                 modifier = Modifier
                     .size(24.dp)
-                    .clickable { onShuffleClicked.invoke() },
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = androidx.compose.material3.ripple(
+                            bounded = false, // Borderless ripple
+                            color = MaterialTheme.colorScheme.primary
+                        ),
+                        onClick = {
+                            onShuffleClicked.invoke()
+                        }
+                    ),
                 colorFilter = ColorFilter.tint(if (isShuffleOn) Color.Blue else Color.Black)
             )
 
@@ -224,7 +299,16 @@ fun MusicPlayerScreen(
                 contentDescription = "Previous",
                 modifier = Modifier
                     .size(30.dp)
-                    .clickable { onPreviousClicked.invoke() },
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = androidx.compose.material3.ripple(
+                            bounded = false, // Borderless ripple
+                            color = MaterialTheme.colorScheme.primary
+                        ),
+                        onClick = {
+                            onPreviousClicked.invoke()
+                        }
+                    ),
                 colorFilter = ColorFilter.tint(Color.Black)
             )
 
@@ -234,7 +318,15 @@ fun MusicPlayerScreen(
                 contentDescription = "Play/Pause",
                 modifier = Modifier
                     .size(82.dp)
-                    .clickable { onPlayPauseClicked.invoke() },
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = androidx.compose.material3.ripple(
+                            bounded = false, // Borderless ripple
+                            color = MaterialTheme.colorScheme.primary
+                        ), onClick = {
+                            onPlayPauseClicked.invoke()
+                        }
+                    ),
                 colorFilter = ColorFilter.tint(if (isPlaying) themeColor else colorResource(id = R.color.black))
             )
 
@@ -244,7 +336,16 @@ fun MusicPlayerScreen(
                 contentDescription = "Next",
                 modifier = Modifier
                     .size(30.dp)
-                    .clickable { onNextClicked.invoke() },
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = androidx.compose.material3.ripple(
+                            bounded = false, // Borderless ripple
+                            color = MaterialTheme.colorScheme.primary
+                        ),
+                        onClick = {
+                            onNextClicked.invoke()
+                        }
+                    ),
                 colorFilter = ColorFilter.tint(Color.Black)
             )
 
@@ -254,14 +355,22 @@ fun MusicPlayerScreen(
                 contentDescription = "Repeat",
                 modifier = Modifier
                     .size(24.dp)
-                    .clickable { onRepeatClicked.invoke() },
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = androidx.compose.material3.ripple(
+                            bounded = false, // Borderless ripple
+                            color = MaterialTheme.colorScheme.primary
+                        ),
+                        onClick = {
+                            onRepeatClicked.invoke()
+                        }
+                    ),
                 colorFilter = ColorFilter.tint(if (isRepeatOn) Color.Blue else Color.Black)
             )
 
         }
     }
 }
-
 
 
 sealed class SongCover {

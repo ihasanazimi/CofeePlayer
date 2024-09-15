@@ -74,12 +74,11 @@ fun GreetingPreview() {
 //        }
 //    )
 
-
     MusicPlayerScreen(
         isPlaying = true,
-        isRepeatOn = false,
-        isShuffleOn = false,
-        isFavorite = false,
+        isRepeatOn = true,
+        isShuffleOn = true,
+        isFavorite = true,
         onPlayPauseClicked = {},
         onNextClicked = {},
         onPreviousClicked = {},

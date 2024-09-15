@@ -13,8 +13,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ir.ha.cofeeplayer.common.AnimatedCircleProgressBar
 import ir.ha.cofeeplayer.ui.theme.CofeePlayerTheme
-import ir.ha.cofeeplayer.ui.theme.MusicPlayerScreen
+import ir.ha.cofeeplayer.screens.MusicPlayerScreen
 
 
 

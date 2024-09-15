@@ -1,4 +1,4 @@
-package ir.ha.cofeeplayer.ui.theme
+package ir.ha.cofeeplayer.screens
 
 import android.util.Log
 import android.widget.Toast
@@ -41,8 +41,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
-import ir.ha.cofeeplayer.LinearProgressBar
+import ir.ha.cofeeplayer.common.LinearProgressBar
 import ir.ha.cofeeplayer.R
+
+
+val PLAYER_SCREEN_TAG = "PLAYER_SCREEN_TAG"
 
 @Composable
 fun MusicPlayerScreen(
@@ -77,7 +80,7 @@ fun MusicPlayerScreen(
             while (currentTime < totalDuration) {
                 kotlinx.coroutines.delay(1000L)
                 currentTime += 1
-                Log.i("PROGRSS", "MusicPlayerScreen: $currentTime")
+                Log.i(PLAYER_SCREEN_TAG, "MusicPlayerScreen: $currentTime")
             }
             if (currentTime >= totalDuration) {
                 currentTime = totalDuration // اطمینان از رسیدن به انتهای آهنگ

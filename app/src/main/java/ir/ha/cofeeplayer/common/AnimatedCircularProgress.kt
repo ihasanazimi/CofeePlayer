@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -93,7 +94,6 @@ fun CircleProgressBarDemo() {
     }
 }
 
-
 @Composable
 fun LinearProgressBar(
     modifier: Modifier = Modifier,
@@ -132,14 +132,13 @@ fun LinearProgressBar(
     modifier: Modifier = Modifier,
     progress: Float, // Progress (0 to 100)
     valueRange: ClosedFloatingPointRange<Float> = 0f..100f, // Range 0..100
+    onValueChange: (progress : Float) -> Unit,
     onValueChangeFinished: (() -> Unit)? = null
 ) {
-    var progress by remember { mutableFloatStateOf(progress) }
-
     Slider(
         modifier = modifier,
         value = progress,
-        onValueChange = { progress = it },
+        onValueChange = { onValueChange.invoke(progress) },
         valueRange = valueRange,
         onValueChangeFinished = onValueChangeFinished, // Non-composable lambda
     )

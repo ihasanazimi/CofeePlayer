@@ -1,5 +1,6 @@
 package ir.ha.cofeeplayer.screens
 
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -25,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,24 +43,27 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
-import ir.ha.cofeeplayer.common.LinearProgressBar
 import ir.ha.cofeeplayer.R
+import ir.ha.cofeeplayer.common.ExoPlayerHelper
+import ir.ha.cofeeplayer.common.LinearProgressBar
 
 
 val PLAYER_SCREEN_TAG = "PLAYER_SCREEN_TAG"
 
 @Composable
 fun MusicPlayerScreen(
+    exoPlayerHelper: ExoPlayerHelper,
+    songUri : Uri? ,
     songTitle: String = "Unknown",
     artistName: String = "Unknown",
     albumName: String = "Unknown",
-    songCover: SongCover = SongCover.Drawable(R.drawable.cover),
-    isPlaying: Boolean = false,
-    isMute: Boolean = false,
-    isRepeatOn: Boolean = false,
-    isShuffleOn: Boolean = false,
-    isFavorite: Boolean = false,
-    totalDuration: Int = 62, // مدت زمان کل آهنگ به ثانیه
+    songCover: SongCover ,
+    isPlaying: Boolean,
+    isMuteOn: Boolean,
+    isRepeatOn: Boolean ,
+    isShuffleOn: Boolean ,
+    isFavorite: Boolean ,
+    totalDuration: Int , // music track duration (s)
     onPlayPauseClicked: () -> Unit = {},
     onNextClicked: () -> Unit = {},
     onPreviousClicked: () -> Unit = {},
@@ -82,8 +87,16 @@ fun MusicPlayerScreen(
                 currentTime += 1
                 Log.i(PLAYER_SCREEN_TAG, "MusicPlayerScreen: $currentTime")
             }
+
+            songUri?.let {
+                exoPlayerHelper.initializePlayer(it)
+                exoPlayerHelper.play()
+            }
+
             if (currentTime >= totalDuration) {
-                currentTime = totalDuration // اطمینان از رسیدن به انتهای آهنگ
+                currentTime = totalDuration // sure to finished music track
+                exoPlayerHelper.pause()
+                onPlayPauseClicked()
                 return@LaunchedEffect
             }
         }
@@ -106,7 +119,7 @@ fun MusicPlayerScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(
-                    painter = painterResource(id = if(isMute) R.drawable.mute else R.drawable.unmute),
+                    painter = painterResource(id = if(isMuteOn) R.drawable.mute else R.drawable.unmute),
                     contentDescription = "Mute",
                     modifier = Modifier
                         .size(30.dp)
@@ -317,7 +330,7 @@ fun MusicPlayerScreen(
 
             // Play/Pause Button
             Image(
-                painter = painterResource(id = if (isPlaying) R.drawable.play else R.drawable.pause),
+                painter = painterResource(id = if (isPlaying) R.drawable.pause else R.drawable.play),
                 contentDescription = "Play/Pause",
                 modifier = Modifier
                     .size(82.dp)
@@ -391,6 +404,66 @@ fun formatTime(seconds: Int): String {
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewMusicPlayerScreen() {
-    MusicPlayerScreen()
+fun GreetingPreview() {
+
+    val context = LocalContext.current // Get context in the composable
+    val exoPlayerHelper = remember { ExoPlayerHelper(context) }
+
+    val songTitle by remember { mutableStateOf("Ghroor") }
+    val artistName by remember { mutableStateOf("Shadmehr Aghili") }
+    val albumName by remember { mutableStateOf("Tasvir") }
+
+    val songUri  : Uri ?= null
+
+    val songCover by remember { mutableStateOf<SongCover>(SongCover.Drawable(R.drawable.cover)) }
+
+    val songDurations by remember { mutableIntStateOf(1) }
+
+    var isPlaying by remember { mutableStateOf(false) }
+    var isRepeatOn by remember { mutableStateOf(false) }
+    var isShuffleOn by remember { mutableStateOf(false) }
+    var isFavorite by remember { mutableStateOf(false) }
+    var isMuteOn by remember { mutableStateOf(false) }
+
+    MusicPlayerScreen(
+        exoPlayerHelper = exoPlayerHelper,
+        songUri = songUri,
+        songTitle = songTitle,
+        artistName = artistName,
+        albumName = albumName,
+        songCover = songCover ,
+        totalDuration = songDurations,
+        isPlaying = isPlaying,
+        isRepeatOn = isRepeatOn,
+        isShuffleOn = isShuffleOn,
+        isFavorite = isFavorite,
+        isMuteOn = isMuteOn ,
+        onPlayPauseClicked = {
+            isPlaying = isPlaying.not()
+        },
+        onNextClicked = {
+            Toast.makeText(context,"onNextClicked",Toast.LENGTH_SHORT).show()
+        },
+        onPreviousClicked = {
+            Toast.makeText(context,"onPreviousClicked",Toast.LENGTH_SHORT).show()
+        },
+        onRepeatClicked = {
+            isRepeatOn = isRepeatOn.not()
+        },
+        onShuffleClicked = {
+            isShuffleOn = isShuffleOn.not()
+        },
+        onFavoriteClicked = {
+            isFavorite = isFavorite.not()
+        },
+        onBackClicked = {
+            Toast.makeText(context,"onBackClicked",Toast.LENGTH_SHORT).show()
+        },
+        onMoreClicked = {
+            Toast.makeText(context,"onMoreClicked",Toast.LENGTH_SHORT).show()
+        },
+        onMuteClicked = {
+            isMuteOn = isMuteOn.not()
+        },
+    )
 }

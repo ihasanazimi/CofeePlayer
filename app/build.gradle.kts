@@ -70,4 +70,7 @@ dependencies {
 
 
     implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation("com.google.android.exoplayer:exoplayer:2.19.1")
+
+    implementation("androidx.work:work-runtime-ktx:2.8.1")
 }

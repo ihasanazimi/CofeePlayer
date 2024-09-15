@@ -3,6 +3,7 @@ package ir.ha.cofeeplayer.common
 import android.content.ContentResolver
 import android.content.Context
 import android.provider.MediaStore
+import android.util.Log
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import androidx.work.PeriodicWorkRequestBuilder
@@ -10,6 +11,8 @@ import androidx.work.WorkManager
 import java.util.concurrent.TimeUnit
 
 class FetchMusicWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
+
+    val TAG = FetchMusicWorker::class.java.simpleName
 
     override fun doWork(): Result {
         // لیست موزیک‌ها را فچ کنید
@@ -47,7 +50,9 @@ class FetchMusicWorker(context: Context, workerParams: WorkerParameters) : Worke
             }
         }
 
-        return musicList
+        return musicList.also {
+            Log.i(TAG, "fetchAllMusic $it: ")
+        }
     }
 }
 

@@ -3,8 +3,12 @@ package ir.ha.cofeeplayer.screens
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -37,10 +41,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -89,12 +95,21 @@ fun SoundBar(
 
     val context = LocalContext.current // Get context in the composable
 
+    val transition = updateTransition(targetState = isExpanded, label = "")
 
-    val height by animateDpAsState(
-        if (isExpanded) 400.dp else 80.dp,
-        label = ""
-    ) // ارتفاع بسته و باز
-    val alpha by animateFloatAsState(if (isExpanded) 1f else 0f, label = "")
+    val height by transition.animateDp(
+        label = "height",
+        transitionSpec = { tween(durationMillis = 1000) } // تنظیم زمان انیمیشن
+    ) { state ->
+        if (state) 400.dp else 80.dp
+    }
+
+    val alpha by transition.animateFloat(
+        label = "alpha",
+        transitionSpec = { tween(durationMillis = 2000) }
+    ) { state ->
+        if (state) 1f else 0f
+    }
 
     Box(
         modifier = Modifier
@@ -296,7 +311,8 @@ fun SoundBar(
                         }
                     )
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
@@ -422,76 +438,91 @@ fun SoundBar(
                 }
             }
         } else {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .clickable {
-                        onSoundBarClick.invoke()
-                    }
+                    .padding(8.dp)
+                    .background(color = Color.White, shape = RoundedCornerShape(50))
+                    .border(1.dp, Color.Gray, shape = RoundedCornerShape(50))
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = androidx.compose.material3.ripple(
+                            bounded = true, // Borderless ripple
+                            color = MaterialTheme.colorScheme.primary
+                        ),
+                        onClick = {
+                            onSoundBarClick.invoke()
+                        }
+                    ),
             ) {
-
-                Image(
-                    painter = painterResource(id = R.drawable.cover),
-                    contentDescription = null,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .size(60.dp)
-                        .border(shape = CircleShape, border = BorderStroke(0.4.dp, Color.Gray))
-                        .padding(
-                            8.dp
-                        )
-                )
-                Spacer(modifier = Modifier.width(16.dp))
+                        .fillMaxWidth()
+                        .padding(start = 8.dp, end = 24.dp, top = 8.dp, bottom = 8.dp)
+                ) {
 
-                Column {
-                    Text(
-                        text = songTitle,
-                        maxLines = 20,
-                        overflow = TextOverflow.Ellipsis,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        modifier = Modifier.padding(bottom = 4.dp)
+                    Image(
+                        painter = painterResource(id = R.drawable.cover),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(60.dp)
+                            .border(shape = CircleShape, border = BorderStroke(1.dp, Color.LightGray))
+                            .padding(
+                                8.dp
+                            )
                     )
-                    Text(
-                        text = artistName,
-                        maxLines = 20,
-                        overflow = TextOverflow.Ellipsis,
-                        fontWeight = FontWeight.Light,
-                        fontSize = 14.sp,
-                        modifier = Modifier.padding(bottom = 4.dp)
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column {
+                        Text(
+                            text = songTitle,
+                            maxLines = 20,
+                            overflow = TextOverflow.Ellipsis,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        )
+                        Text(
+                            text = artistName,
+                            maxLines = 20,
+                            overflow = TextOverflow.Ellipsis,
+                            fontWeight = FontWeight.Light,
+                            fontSize = 14.sp,
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    Image(
+                        painter = painterResource(id = R.drawable.previews),
+                        contentDescription = "Previous",
+                        Modifier
+                            .size(24.dp)
+                            .clickable { onPreviousClicked.invoke() }
+                    )
+
+                    Spacer(modifier = Modifier.size(24.dp))
+
+                    Image(
+                        painter = painterResource(id = if (isPlaying) R.drawable.pause else R.drawable.play),
+                        contentDescription = "Play/Pause",
+                        Modifier
+                            .size(28.dp)
+                            .clickable { onPlayPauseClicked.invoke() }
+                    )
+
+                    Spacer(modifier = Modifier.size(24.dp))
+
+                    Image(
+                        painter = painterResource(id = R.drawable.next),
+                        contentDescription = "Next",
+                        Modifier
+                            .size(24.dp)
+                            .clickable { onNextClicked.invoke() }
                     )
                 }
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                Image(
-                    painter = painterResource(id = R.drawable.previews),
-                    contentDescription = "Previous",
-                    Modifier
-                        .size(24.dp)
-                        .clickable { onPreviousClicked.invoke() }
-                )
-
-                Spacer(modifier = Modifier.size(24.dp))
-
-                Image(
-                    painter = painterResource(id = if (isPlaying) R.drawable.pause else R.drawable.play),
-                    contentDescription = "Play/Pause",
-                    Modifier
-                        .size(28.dp)
-                        .clickable { onPlayPauseClicked.invoke() }
-                )
-
-                Spacer(modifier = Modifier.size(24.dp))
-
-                Image(
-                    painter = painterResource(id = R.drawable.next),
-                    contentDescription = "Next",
-                    Modifier
-                        .size(24.dp)
-                        .clickable { onNextClicked.invoke() }
-                )
             }
         }
     }

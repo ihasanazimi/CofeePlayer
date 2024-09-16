@@ -4,10 +4,10 @@ import android.content.ContentResolver
 import android.content.Context
 import android.provider.MediaStore
 import android.util.Log
-import androidx.work.Worker
-import androidx.work.WorkerParameters
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import androidx.work.Worker
+import androidx.work.WorkerParameters
 import java.util.concurrent.TimeUnit
 
 class FetchMusicWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {

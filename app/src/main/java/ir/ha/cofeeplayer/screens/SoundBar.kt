@@ -1,6 +1,7 @@
 package ir.ha.cofeeplayer.screens
 
 import android.net.Uri
+import android.os.Parcelable
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.core.animateDp
@@ -61,6 +62,7 @@ import coil.compose.rememberImagePainter
 import ir.ha.cofeeplayer.R
 import ir.ha.cofeeplayer.common.ExoPlayerHelper
 import ir.ha.cofeeplayer.common.LinearProgressBar
+import kotlinx.parcelize.Parcelize
 
 
 val TAG = "TAG"
@@ -529,9 +531,12 @@ fun SoundBar(
 }
 
 
+
 sealed class SongCover {
-    data class Uri(val uri: String) : SongCover()
-    data class Drawable(val resId: Int) : SongCover()
+    @Parcelize
+    data class Uri(val uri: String) : SongCover() , Parcelable
+    @Parcelize
+    data class Drawable(val resId: Int) : SongCover(), Parcelable
 }
 
 

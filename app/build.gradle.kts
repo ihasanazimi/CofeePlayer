@@ -1,6 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    id ("com.google.devtools.ksp")
+    id ("kotlin-parcelize")
+    id ("dagger.hilt.android.plugin")
 }
 
 android {
@@ -73,4 +76,16 @@ dependencies {
     implementation("com.google.android.exoplayer:exoplayer:2.19.1")
 
     implementation("androidx.work:work-runtime-ktx:2.8.1")
+
+    // room dataBase
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+    androidTestImplementation(libs.androidx.room.testing)
+
+    /*  Dagger Hilt  */
+    implementation ("androidx.legacy:legacy-support-v4:1.0.0")
+    androidTestImplementation ("androidx.test:rules:1.5.0")
+    implementation ("com.google.dagger:hilt-android:2.51")
+    ksp ("com.google.dagger:hilt-compiler:2.51")
+
 }

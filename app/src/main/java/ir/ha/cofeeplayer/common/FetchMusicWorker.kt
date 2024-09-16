@@ -8,11 +8,19 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import ir.ha.cofeeplayer.data.database.RoomDB
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
-class FetchMusicWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
+class FetchMusicWorker(
+    context: Context,
+    workerParams: WorkerParameters,
+) : Worker(context, workerParams) {
 
     val TAG = FetchMusicWorker::class.java.simpleName
+
+    @Inject
+    val roomDB: RoomDB ? =null
 
     override fun doWork(): Result {
         // لیست موزیک‌ها را فچ کنید
@@ -50,9 +58,15 @@ class FetchMusicWorker(context: Context, workerParams: WorkerParameters) : Worke
             }
         }
 
-        return musicList.also {
-            Log.i(TAG, "fetchAllMusic $it: ")
+        musicList.forEach{ song ->
+            roomDB?.songDto()?.addSong(song)
+            // todo
         }
+
+        return musicList.also {
+            Log.i(TAG, "fetchAllMusic: $it")
+        }
+
     }
 }
 

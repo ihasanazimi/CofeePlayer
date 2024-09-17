@@ -1,5 +1,7 @@
 package ir.ha.cofeeplayer.common
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
@@ -56,14 +58,19 @@ fun <T> BaseScreen(
 fun <T> BaseLazyColumn(
     items: List<T>,
     key: (T) -> Any = { it.hashCode() },
+    onItemClick: (T) -> Unit, // Click listener for items
     itemContent: @Composable (T) -> Unit
 ) {
     LazyColumn {
         items(items, key = key) { item ->
-            itemContent(item)
+            // Use Modifier.clickable here
+            Box(modifier = Modifier.clickable { onItemClick(item) }) {
+                itemContent(item)
+            }
         }
     }
 }
+
 
 
 

@@ -1,10 +1,13 @@
-package ir.ha.cofeeplayer
+package ir.ha.cofeeplayer.activities
 
-import android.app.Application
+import androidx.multidex.MultiDexApplication
+import dagger.hilt.android.HiltAndroidApp
 import ir.ha.cofeeplayer.common.scheduleFetchMusicWork
 import ir.ha.cofeeplayer.data.database.RoomDB
 
-class App : Application() {
+
+@HiltAndroidApp
+class MyApplication : MultiDexApplication() {
 
 
     companion object{
@@ -15,7 +18,7 @@ class App : Application() {
         super.onCreate()
         roomDB = RoomDB.getDataBase(this)
 
-        scheduleFetchMusicWork(applicationContext)
+        scheduleFetchMusicWork(this)
 
     }
 }

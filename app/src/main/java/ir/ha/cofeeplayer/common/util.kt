@@ -22,7 +22,7 @@ val songItems = listOf<SongEntity>(
         songAlbum = "Gonjish",
         songCover = "https://cdn-icons-png.freepik.com/512/1987/1987912.png",
         songDuration = 2,
-        songUrl = Uri.parse("https://cdn-icons-png.freepik.com/512/1987/1987912.png"),
+        songUri = Uri.parse("https://cdn-icons-png.freepik.com/512/1987/1987912.png"),
         isFavorite = false
     ),
 
@@ -33,7 +33,7 @@ val songItems = listOf<SongEntity>(
         songAlbum = "chap",
         songCover = "",
         songDuration = 8,
-        songUrl = Uri.parse("https://cdn-icons-png.freepik.com/512/1987/1987912.png"),
+        songUri = Uri.parse("https://cdn-icons-png.freepik.com/512/1987/1987912.png"),
         isFavorite = false
     ),
 

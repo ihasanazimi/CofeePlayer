@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import ir.ha.cofeeplayer.common.ExoPlayerHelper
 import ir.ha.cofeeplayer.data.database.SongEntity
 
 
@@ -22,14 +21,13 @@ val TAG = "TAG"
 @Composable
 fun MainScreen(
     isExpanded: Boolean = true,
-    exoPlayerHelper: ExoPlayerHelper,
-    songEntity: SongEntity?,
-    songs: List<SongEntity>,
+    selectedSong : Pair<List<SongEntity>,Int>,
     isPlaying: Boolean,
     isMuteOn: Boolean,
     isRepeatOn: Boolean,
     isShuffleOn: Boolean,
     isFavorite: Boolean,
+    currentLeftTime: Int = 0,
     onPlayPauseClicked: (play: Boolean) -> Unit = {},
     onNextClicked: () -> Unit = {},
     onPreviousClicked: () -> Unit = {},
@@ -40,7 +38,7 @@ fun MainScreen(
     onMoreClicked: () -> Unit = {},
     onMuteClicked: () -> Unit = {},
     onSoundBarClick: () -> Unit = {},
-    onSongClick: (SongEntity) -> Unit = {},
+    onSongClick: (Int) -> Unit = { _ -> },
 ) {
 
     val context = LocalContext.current // Get context in the composable
@@ -65,16 +63,13 @@ fun MainScreen(
 
                 PlayerScreen(
                     context = context,
-                    exoPlayerHelper = exoPlayerHelper,
-                    songEntity = songEntity,
+                    songEntity = selectedSong.first[selectedSong.second],
+                    currentLeftTime = currentLeftTime,
                     isPlaying = isPlaying,
                     isMuteOn = isMuteOn,
                     isFavorite = isFavorite,
                     isShuffleOn = isShuffleOn,
                     isRepeatOn = isRepeatOn,
-                    onPlayPauseClicked = {
-                        onPlayPauseClicked.invoke(isPlaying)
-                    },
                     onMuteClicked = {
                         onMuteClicked.invoke()
                     },
@@ -90,21 +85,25 @@ fun MainScreen(
                     onShuffleClicked = {
                         onShuffleClicked.invoke()
                     },
+                    onRepeatClicked = {
+                        onRepeatClicked.invoke()
+                    },
                     onPreviousClicked = {
                         onPreviousClicked.invoke()
                     },
                     onNextClicked = {
                         onNextClicked.invoke()
-                    },
-                    onRepeatClicked = {
-                        onRepeatClicked.invoke()
+                    },onPlayPauseClicked = {
+                        onPlayPauseClicked.invoke(isPlaying)
                     }
                 )
 
             } else {
 
-                SongListScreen(songs, onSongClick = {
-                    onSongClick.invoke(it)
+                SongListScreen(
+                    selectedSong = selectedSong,
+                    onSongClick = { songPosition ->
+                    onSongClick.invoke(songPosition)
                 })
 
             }
@@ -119,7 +118,7 @@ fun MainScreen(
 
             SoundBar(
                 isPlaying = isPlaying,
-                songEntity = songEntity,
+                selectedSong = selectedSong,
                 onSoundBarClick = {
                     onSoundBarClick.invoke()
                 },

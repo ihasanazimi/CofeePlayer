@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberImagePainter
 import ir.ha.cofeeplayer.R
 import ir.ha.cofeeplayer.data.database.SongEntity
 
@@ -37,7 +38,7 @@ import ir.ha.cofeeplayer.data.database.SongEntity
 @Composable
 fun SoundBar(
     isPlaying: Boolean,
-    songEntity: SongEntity?,
+    selectedSong : Pair<List<SongEntity>,Int>,
     onPlayPauseClicked: () -> Unit = {},
     onNextClicked: () -> Unit = {},
     onPreviousClicked: () -> Unit = {},
@@ -67,8 +68,15 @@ fun SoundBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
 
+            val cover = if (selectedSong.first[selectedSong.second].songCover.isNullOrEmpty().not()) {
+                rememberImagePainter(data = selectedSong.first[selectedSong.second].songCover)
+            } else {
+                painterResource(id = R.drawable.cover)
+            }
+
+
             Image(
-                painter = painterResource(id = R.drawable.cover),
+                painter = cover,
                 contentDescription = null,
                 modifier = Modifier
                     .size(60.dp)
@@ -89,7 +97,7 @@ fun SoundBar(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = songEntity?.songTitle ?: "",
+                    text = selectedSong.first[selectedSong.second].songTitle,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     fontWeight = FontWeight.Bold,
@@ -97,7 +105,7 @@ fun SoundBar(
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
-                    text = songEntity?.songArtist ?: "",
+                    text = selectedSong.first[selectedSong.second].songArtist,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     fontWeight = FontWeight.Light,

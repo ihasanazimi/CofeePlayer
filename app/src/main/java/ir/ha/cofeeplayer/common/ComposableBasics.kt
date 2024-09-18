@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -58,14 +59,14 @@ fun <T> BaseScreen(
 fun <T> BaseLazyColumn(
     items: List<T>,
     key: (T) -> Any = { it.hashCode() },
-    onItemClick: (T) -> Unit, // Click listener for items
-    itemContent: @Composable (T) -> Unit
+    onItemClick: (T, Int) -> Unit, // Click listener for items with index
+    itemContent: @Composable (T, Int) -> Unit // Item content with index
 ) {
     LazyColumn {
-        items(items, key = key) { item ->
-            // Use Modifier.clickable here
-            Box(modifier = Modifier.clickable { onItemClick(item) }) {
-                itemContent(item)
+        itemsIndexed(items, key = { _, item -> key(item) }) { index, item ->
+            // Modifier.clickable is applied to each item with index
+            Box(modifier = Modifier.clickable { onItemClick(item, index) }) {
+                itemContent(item, index)
             }
         }
     }

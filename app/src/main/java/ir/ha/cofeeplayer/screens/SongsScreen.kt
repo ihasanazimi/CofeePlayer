@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -20,27 +20,37 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberImagePainter
 import ir.ha.cofeeplayer.R
 import ir.ha.cofeeplayer.common.BaseLazyColumn
 import ir.ha.cofeeplayer.data.database.SongEntity
 
 
 @Composable
-fun SongListScreen(songItems: List<SongEntity>, onSongClick: (SongEntity) -> Unit = {}) {
+fun SongListScreen(selectedSong : Pair<List<SongEntity>,Int>, onSongClick: (Int) -> Unit = { _ -> }) {
 
-    Box(modifier = Modifier.fillMaxSize()){
-        BaseLazyColumn(items = songItems , onItemClick = { song ->
-            onSongClick.invoke(song)
-        }) { item ->
-            Row(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
+    Box(modifier = Modifier.fillMaxWidth()) {
+        BaseLazyColumn(items = selectedSong.first, onItemClick = { song, index -> onSongClick.invoke(index) }) { item, index ->
+            Row(modifier = Modifier
+                .padding(horizontal = 8.dp, vertical = 8.dp)
+                .fillMaxWidth()) {
+
+                val cover = if (item.songCover.isNullOrEmpty().not()) {
+                        rememberImagePainter(data = item.songCover)
+                    } else {
+                        painterResource(id = R.drawable.cover)
+                    }
+
 
                 Image(
-                    painter = painterResource(id = R.drawable.cover),
+                    painter = cover,
                     contentDescription = null,
                     modifier = Modifier
                         .size(60.dp)
                         .padding(8.dp)
                 )
+
+
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Column {
@@ -61,6 +71,8 @@ fun SongListScreen(songItems: List<SongEntity>, onSongClick: (SongEntity) -> Uni
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
                 }
+
+
             }
         }
     }
@@ -69,7 +81,7 @@ fun SongListScreen(songItems: List<SongEntity>, onSongClick: (SongEntity) -> Uni
 
 @Preview(showBackground = true)
 @Composable
-fun SongsScreenPreview(onItemClicked: (SongEntity) -> Unit = {}) {
+fun SongsScreenPreview(onSongClick: (Int) -> Unit = { _ -> }) {
 
     val songItems = listOf<SongEntity>(
         SongEntity(
@@ -79,7 +91,7 @@ fun SongsScreenPreview(onItemClicked: (SongEntity) -> Unit = {}) {
             songAlbum = "Gonjish",
             songCover = "https://cdn-icons-png.freepik.com/512/1987/1987912.png",
             songDuration = 2,
-            songUrl = Uri.parse("https://cdn-icons-png.freepik.com/512/1987/1987912.png"),
+            songUri = Uri.parse("https://cdn-icons-png.freepik.com/512/1987/1987912.png"),
             isFavorite = false
         ),
 
@@ -90,15 +102,15 @@ fun SongsScreenPreview(onItemClicked: (SongEntity) -> Unit = {}) {
             songAlbum = "chap",
             songCover = "",
             songDuration = 8,
-            songUrl = Uri.parse("https://cdn-icons-png.freepik.com/512/1987/1987912.png"),
+            songUri = Uri.parse("https://cdn-icons-png.freepik.com/512/1987/1987912.png"),
             isFavorite = false
         ),
 
         )
 
     Surface {
-        SongListScreen(songItems, onSongClick = {
-            onItemClicked.invoke(it)
+        SongListScreen(Pair(songItems,0), onSongClick = { pos ->
+            onSongClick.invoke(pos)
         })
     }
 }

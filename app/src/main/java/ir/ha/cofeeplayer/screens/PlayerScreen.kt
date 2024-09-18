@@ -24,10 +24,8 @@ import androidx.compose.material3.SliderColors
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -42,68 +40,37 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import ir.ha.cofeeplayer.R
-import ir.ha.cofeeplayer.common.ExoPlayerHelper
 import ir.ha.cofeeplayer.common.LinearProgressBar
 import ir.ha.cofeeplayer.common.formatTime
 import ir.ha.cofeeplayer.data.database.SongEntity
-import kotlinx.coroutines.delay
 
 @Composable
 fun PlayerScreen(
     context: Context,
-    exoPlayerHelper: ExoPlayerHelper,
     songEntity: SongEntity?,
     isPlaying: Boolean,
+    currentLeftTime  : Int = 0, /* second */
     isMuteOn: Boolean,
     isFavorite: Boolean,
     isShuffleOn: Boolean,
     isRepeatOn: Boolean,
-    onPlayPauseClicked: () -> Unit,
     onMuteClicked: () -> Unit,
     onMoreClicked: () -> Unit,
     onBackClicked: () -> Unit,
     onFavoriteClicked: () -> Unit,
     onShuffleClicked: () -> Unit,
+    onRepeatClicked: () -> Unit,
     onPreviousClicked: () -> Unit,
     onNextClicked: () -> Unit,
-    onRepeatClicked: () -> Unit
+    onPlayPauseClicked: () -> Unit,
 ) {
-    var currentTime by remember { mutableIntStateOf(0) }
-
-    // LaunchedEffect
-    LaunchedEffect(isPlaying) {
-        if (isPlaying) {
-
-//            songEntity?.songUrl.let {
-//                it?.let { uri -> exoPlayerHelper.initializePlayer(uri) }
-//                exoPlayerHelper.play()
-//            }
-
-            while (currentTime < (songEntity?.songDuration ?: 0)) {
-                delay(1000L)
-                currentTime += 1
-                Log.i(TAG, "MusicPlayerScreen: $currentTime")
-            }
-
-            if (currentTime >= (songEntity?.songDuration ?: 0)) {
-                currentTime = songEntity?.songDuration?:0 // sure to finished music track
-                exoPlayerHelper.pause()
-                onPlayPauseClicked()
-                return@LaunchedEffect
-            }
-        }else{
-            exoPlayerHelper.pause()
-            onPlayPauseClicked()
-        }
-    }
+    val currentTime by remember { mutableIntStateOf(currentLeftTime) }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -233,6 +200,7 @@ fun PlayerScreen(
                     ),
             )
 
+            Log.i(TAG, "PlayerScreen: ${currentTime.toFloat()}")
             // Progress Bar
             LinearProgressBar(
                 modifier = Modifier
@@ -252,7 +220,6 @@ fun PlayerScreen(
                     activeTickColor = Color.LightGray,
                     disabledInactiveTickColor = Color.LightGray
                 ),
-
                 progress = (currentTime.toFloat() / (songEntity?.songDuration?:0)) * 100, // محاسبه درصد پیشرفت ,
                 valueRange = 0f..100f,
                 onValueChange = { p ->

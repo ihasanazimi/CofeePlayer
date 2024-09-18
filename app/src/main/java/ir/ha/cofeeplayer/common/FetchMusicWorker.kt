@@ -78,7 +78,7 @@ class FetchMusicWorker(
 
                 val song = SongEntity(
                     id = id,
-                    songUrl = songUrl,
+                    songUri = songUrl,
                     songTitle = title,
                     songArtist = artist,
                     songAlbum = album,

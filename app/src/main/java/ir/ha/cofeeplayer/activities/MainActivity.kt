@@ -9,12 +9,14 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -22,10 +24,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import ir.ha.cofeeplayer.common.ExoPlayerHelper
-import ir.ha.cofeeplayer.data.database.SongEntity
 import ir.ha.cofeeplayer.screens.MainScreen
+import ir.ha.cofeeplayer.screens.Timer
 import ir.ha.cofeeplayer.ui.theme.CofeePlayerTheme
 
 
@@ -40,97 +43,118 @@ class MainActivity : ComponentActivity() {
         setContent {
             CofeePlayerTheme {
 
-                SideEffect {
-                    viewModel.fetchSongs()
-                }
-
-                val loading by viewModel.loading.collectAsState()
-                val error by viewModel.error.collectAsState()
-                val data by viewModel.data.collectAsState()
-
-
-                when {
-                    loading -> {
-                        // Show loading indicator
-                        CircularProgressIndicator(modifier = Modifier.fillMaxSize())
+                Surface {
+                    SideEffect {
+                        viewModel.fetchSongs()
                     }
 
-                    error != null -> {
-                         // Show error message
-                        Text(
-                            text = "Error: $error",
-                            modifier = Modifier.fillMaxSize(),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
+                    val loading by viewModel.loading.collectAsState()
+                    val error by viewModel.error.collectAsState()
+                    val data by viewModel.data.collectAsState()
 
-                    data.isNullOrEmpty().not() -> {
-                        // Show the list of users when data is available
-                        Surface {
 
-                            val context = LocalContext.current
-                            val exoPlayerHelper = remember { ExoPlayerHelper(context) }
-                            var isExpanded by rememberSaveable { mutableStateOf(false) }
-                            var isPlaying by rememberSaveable { mutableStateOf(false) }
-                            var isRepeatOn by rememberSaveable { mutableStateOf(false) }
-                            var isShuffleOn by rememberSaveable { mutableStateOf(false) }
-                            var isFavorite by rememberSaveable { mutableStateOf(false) }
-                            var isMuteOn by rememberSaveable { mutableStateOf(false) }
-                            var songEntity by remember { mutableStateOf<SongEntity?>(null) }
+                    when {
+                        loading -> {
+                            // Show loading indicator
+                            CircularProgressIndicator(modifier = Modifier.fillMaxSize())
+                        }
 
-                            MainScreen(
-                                exoPlayerHelper = exoPlayerHelper,
-                                songEntity = songEntity,
-                                songs = data?: arrayListOf(),
-                                isExpanded = isExpanded,
-                                isPlaying = isPlaying,
-                                isRepeatOn = isRepeatOn,
-                                isShuffleOn = isShuffleOn,
-                                isFavorite = isFavorite,
-                                isMuteOn = isMuteOn,
-                                onPlayPauseClicked = { play ->
-                                    if (play) exoPlayerHelper.pause()
-                                    else exoPlayerHelper.play()
-                                    isPlaying = play
-                                },
-                                onNextClicked = {
-                                    Toast.makeText(context, "onNextClicked", Toast.LENGTH_SHORT)
-                                        .show()
-                                },
-                                onPreviousClicked = {
-                                    Toast.makeText(context, "onPreviousClicked", Toast.LENGTH_SHORT)
-                                        .show()
-                                },
-                                onRepeatClicked = {
-                                    isRepeatOn = isRepeatOn.not()
-                                },
-                                onShuffleClicked = {
-                                    isShuffleOn = isShuffleOn.not()
-                                },
-                                onFavoriteClicked = {
-                                    isFavorite = isFavorite.not()
-                                },
-                                onBackClicked = {
-                                    isExpanded = isExpanded.not()
-                                },
-                                onMoreClicked = {
-                                    Toast.makeText(context, "onMoreClicked", Toast.LENGTH_SHORT).show()
-                                },
-                                onMuteClicked = {
-                                    isMuteOn = isMuteOn.not()
-                                },
-                                onSoundBarClick = {
-                                    isExpanded = isExpanded.not()
-                                },
-                                onSongClick = { song ->
-                                    songEntity = song
-                                    if (songEntity != null){
-                                        isPlaying = true
-                                        exoPlayerHelper.initializePlayer(songEntity!!.songUrl)
-                                        exoPlayerHelper.play()
-                                    }
-                                }
+                        error != null -> {
+                            // Show error message
+                            Text(
+                                text = "Error: $error",
+                                modifier = Modifier.fillMaxSize(),
+                                style = MaterialTheme.typography.bodyLarge
                             )
+                        }
+
+                        data.isNullOrEmpty().not() -> {
+                            // Show the list of users when data is available
+                            Surface {
+
+                                val context = LocalContext.current
+                                val timer = remember { Timer(this.lifecycleScope) }
+                                val exoPlayerHelper = remember { ExoPlayerHelper(context) }
+                                var isExpanded by rememberSaveable { mutableStateOf(false) }
+                                var isPlaying by rememberSaveable { mutableStateOf(false) }
+                                var isRepeatOn by rememberSaveable { mutableStateOf(false) }
+                                var isShuffleOn by rememberSaveable { mutableStateOf(false) }
+                                var isFavorite by rememberSaveable { mutableStateOf(false) }
+                                var isMuteOn by rememberSaveable { mutableStateOf(false) }
+
+                                val songs by remember{ mutableStateOf(data?: arrayListOf()) }
+                                var songPosition by remember { mutableIntStateOf(if(songs.isEmpty()) -1 else 0) }
+                                var currentLeftTime by remember { mutableIntStateOf(0) }
+
+                                MainScreen(
+                                    selectedSong = Pair(songs,songPosition),
+                                    isExpanded = isExpanded,
+                                    isPlaying = isPlaying,
+                                    isRepeatOn = isRepeatOn,
+                                    isShuffleOn = isShuffleOn,
+                                    isFavorite = isFavorite,
+                                    isMuteOn = isMuteOn,
+                                    currentLeftTime = currentLeftTime,
+                                    onRepeatClicked = {
+                                        isRepeatOn = isRepeatOn.not()
+                                    },
+                                    onShuffleClicked = {
+                                        isShuffleOn = isShuffleOn.not()
+                                    },
+                                    onFavoriteClicked = {
+                                        isFavorite = isFavorite.not()
+                                    },
+                                    onBackClicked = {
+                                        isExpanded = isExpanded.not()
+                                    },
+                                    onMoreClicked = {
+                                        Toast.makeText(context, "onMoreClicked", Toast.LENGTH_SHORT).show()
+                                    },
+                                    onMuteClicked = {
+                                        isMuteOn = isMuteOn.not()
+                                    },
+                                    onSoundBarClick = {
+                                        if(songPosition != -1){
+                                            isExpanded = isExpanded.not()
+                                        }
+                                    },
+                                    onNextClicked = {
+                                        Toast.makeText(context, "onNextClicked", Toast.LENGTH_SHORT).show()
+                                    },
+                                    onPreviousClicked = {
+                                        Toast.makeText(context, "onPreviousClicked", Toast.LENGTH_SHORT).show()
+                                    },
+                                    onSongClick = { pos ->
+                                        if (songs.size -1 >= pos) {
+                                            isPlaying = true
+                                            songPosition = pos
+                                            exoPlayerHelper.initializePlayer(songs[pos].songUri)
+                                            exoPlayerHelper.play()
+                                            timer.stopTimer()
+                                            timer.startTimer(songs[pos].songDuration,
+                                                onTick = { t ->
+                                                    currentLeftTime = t
+                                                },
+                                                onComplete = {
+                                                    isPlaying = false
+                                                    exoPlayerHelper.pause()
+                                                    currentLeftTime = 0
+                                                }
+                                            )
+                                        }
+                                    },
+                                    onPlayPauseClicked = { play ->
+                                        if (play) {
+                                            exoPlayerHelper.pause()
+                                            isPlaying = false
+                                        }
+                                        else {
+                                            exoPlayerHelper.play()
+                                            isPlaying = true
+                                        }
+                                    },
+                                )
+                            }
                         }
                     }
                 }
@@ -143,6 +167,6 @@ class MainActivity : ComponentActivity() {
 
 @Preview(showBackground = true)
 @Composable
-fun Previewsss() {
+fun MainActivityPreviews() {
 
 }

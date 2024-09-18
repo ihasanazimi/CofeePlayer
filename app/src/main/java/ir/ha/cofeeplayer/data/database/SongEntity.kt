@@ -12,15 +12,15 @@ import kotlinx.parcelize.Parcelize
 data class SongEntity (
     @PrimaryKey
     @ColumnInfo
-    var id : Long = -1 ,
+    var id : Long = -1,
     @ColumnInfo
-    var songUrl : Uri,
+    var songUri : Uri,
     @ColumnInfo
-    var songTitle : String = "Unknown" ,
+    var songTitle : String = "Unknown",
     @ColumnInfo
-    var songArtist : String = "Unknown" ,
+    var songArtist : String = "Unknown",
     @ColumnInfo
-    var songAlbum : String = "Unknown" ,
+    var songAlbum : String = "Unknown",
     @ColumnInfo
     var songCover : String,
     @ColumnInfo

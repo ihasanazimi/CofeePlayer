@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -27,8 +26,8 @@ fun MainScreen(
     isRepeatOn: Boolean,
     isShuffleOn: Boolean,
     isFavorite: Boolean,
-    currentLeftTime: Int = 0,
-    onPlayPauseClicked: (play: Boolean) -> Unit = {},
+    currentLeftTime: Int,
+    onPlayPauseClicked: () -> Unit = {},
     onNextClicked: () -> Unit = {},
     onPreviousClicked: () -> Unit = {},
     onRepeatClicked: () -> Unit = {},
@@ -42,7 +41,6 @@ fun MainScreen(
 ) {
 
     val context = LocalContext.current // Get context in the composable
-    var showSoundBar = rememberSaveable { isExpanded.not() }
 
     Column(
         modifier = Modifier
@@ -58,8 +56,6 @@ fun MainScreen(
                 .padding(8.dp)
         ) {
             if (isExpanded) {
-
-                showSoundBar = isExpanded.not()
 
                 PlayerScreen(
                     context = context,
@@ -93,8 +89,9 @@ fun MainScreen(
                     },
                     onNextClicked = {
                         onNextClicked.invoke()
-                    },onPlayPauseClicked = {
-                        onPlayPauseClicked.invoke(isPlaying)
+                    },
+                    onPlayPauseClicked = {
+                        onPlayPauseClicked.invoke()
                     }
                 )
 
@@ -113,7 +110,7 @@ fun MainScreen(
         Box(
             modifier = Modifier
                 .padding(8.dp)
-                .weight(if (showSoundBar) 0.109f else 0.01f)
+                .weight(if (isExpanded.not()) 0.109f else 0.01f)
         ) {
 
             SoundBar(
@@ -123,7 +120,7 @@ fun MainScreen(
                     onSoundBarClick.invoke()
                 },
                 onPlayPauseClicked = {
-                    onPlayPauseClicked.invoke(isPlaying)
+                    onPlayPauseClicked.invoke()
                 }
             )
 

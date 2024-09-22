@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,7 +53,7 @@ fun PlayerScreen(
     context: Context,
     songEntity: SongEntity?,
     isPlaying: Boolean,
-    currentLeftTime  : Int = 0, /* second */
+    currentLeftTime  : Int , /* second */
     isMuteOn: Boolean,
     isFavorite: Boolean,
     isShuffleOn: Boolean,
@@ -65,9 +66,8 @@ fun PlayerScreen(
     onRepeatClicked: () -> Unit,
     onPreviousClicked: () -> Unit,
     onNextClicked: () -> Unit,
-    onPlayPauseClicked: () -> Unit,
+    onPlayPauseClicked :  () -> Unit,
 ) {
-    val currentTime by remember { mutableIntStateOf(currentLeftTime) }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -200,7 +200,7 @@ fun PlayerScreen(
                     ),
             )
 
-            Log.i(TAG, "PlayerScreen: ${currentTime.toFloat()}")
+            Log.i(TAG, "PlayerScreen: ${currentLeftTime.toFloat()}")
             // Progress Bar
             LinearProgressBar(
                 modifier = Modifier
@@ -220,7 +220,7 @@ fun PlayerScreen(
                     activeTickColor = Color.LightGray,
                     disabledInactiveTickColor = Color.LightGray
                 ),
-                progress = (currentTime.toFloat() / (songEntity?.songDuration?:0)) * 100, // محاسبه درصد پیشرفت ,
+                progress = (currentLeftTime.toFloat() / (songEntity?.songDuration?:0)) * 100, // محاسبه درصد پیشرفت ,
                 valueRange = 0f..100f,
                 onValueChange = { p ->
                     Toast.makeText(context, p.toString(), Toast.LENGTH_SHORT).show()
@@ -236,7 +236,7 @@ fun PlayerScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = formatTime(currentTime),
+                    text = formatTime(currentLeftTime),
                     color = Color.Gray,
                     fontSize = 14.sp
                 ) // زمان جاری

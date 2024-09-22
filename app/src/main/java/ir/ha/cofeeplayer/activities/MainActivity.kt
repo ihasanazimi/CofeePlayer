@@ -9,7 +9,6 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,8 +26,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import ir.ha.cofeeplayer.common.ExoPlayerHelper
+import ir.ha.cofeeplayer.data.database.SongEntity
+import ir.ha.cofeeplayer.screens.CoroutineTimer
 import ir.ha.cofeeplayer.screens.MainScreen
-import ir.ha.cofeeplayer.screens.Timer
 import ir.ha.cofeeplayer.ui.theme.CofeePlayerTheme
 
 
@@ -73,18 +73,30 @@ class MainActivity : ComponentActivity() {
                             Surface {
 
                                 val context = LocalContext.current
-                                val timer = remember { Timer(this.lifecycleScope) }
                                 val exoPlayerHelper = remember { ExoPlayerHelper(context) }
-                                var isExpanded by rememberSaveable { mutableStateOf(false) }
-                                var isPlaying by rememberSaveable { mutableStateOf(false) }
-                                var isRepeatOn by rememberSaveable { mutableStateOf(false) }
-                                var isShuffleOn by rememberSaveable { mutableStateOf(false) }
-                                var isFavorite by rememberSaveable { mutableStateOf(false) }
-                                var isMuteOn by rememberSaveable { mutableStateOf(false) }
+                                var isExpanded by remember { mutableStateOf(false) }
+                                var isPlaying by remember { mutableStateOf(false) }
+                                var isRepeatOn by remember { mutableStateOf(false) }
+                                var isShuffleOn by remember { mutableStateOf(false) }
+                                var isFavorite by remember { mutableStateOf(false) }
+                                var isMuteOn by remember { mutableStateOf(false) }
 
-                                val songs by remember{ mutableStateOf(data?: arrayListOf()) }
+                                val songs by rememberSaveable{ mutableStateOf(data?: arrayListOf()) }
                                 var songPosition by remember { mutableIntStateOf(if(songs.isEmpty()) -1 else 0) }
                                 var currentLeftTime by remember { mutableIntStateOf(0) }
+
+
+                                val timer = remember { CoroutineTimer(
+                                    totalSeconds = songs[songPosition].songDuration,
+                                    onTick = {
+                                        currentLeftTime = it
+                                    },
+                                    onFinished = {
+                                        currentLeftTime = 0
+                                        isPlaying = false
+                                    })
+                                }
+
 
                                 MainScreen(
                                     selectedSong = Pair(songs,songPosition),
@@ -126,31 +138,24 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onSongClick = { pos ->
                                         if (songs.size -1 >= pos) {
-                                            isPlaying = true
+                                            if (isPlaying.not()) isPlaying = true
                                             songPosition = pos
-                                            exoPlayerHelper.initializePlayer(songs[pos].songUri)
-                                            exoPlayerHelper.play()
-                                            timer.stopTimer()
-                                            timer.startTimer(songs[pos].songDuration,
-                                                onTick = { t ->
-                                                    currentLeftTime = t
-                                                },
-                                                onComplete = {
-                                                    isPlaying = false
-                                                    exoPlayerHelper.pause()
-                                                    currentLeftTime = 0
-                                                }
-                                            )
+                                            playSong(exoPlayerHelper, songs, songPosition)
+                                            currentLeftTime = 0
+                                            timer.stop()
+                                            timer.start()
                                         }
                                     },
-                                    onPlayPauseClicked = { play ->
-                                        if (play) {
-                                            exoPlayerHelper.pause()
+                                    onPlayPauseClicked = {
+                                        if (isPlaying) {
                                             isPlaying = false
+                                            exoPlayerHelper.pause()
+                                            timer.pause()
                                         }
                                         else {
-                                            exoPlayerHelper.play()
                                             isPlaying = true
+                                            exoPlayerHelper.play()
+                                            timer.resume()
                                         }
                                     },
                                 )
@@ -160,6 +165,15 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private fun playSong(
+        exoPlayerHelper: ExoPlayerHelper,
+        songs: List<SongEntity>,
+        songPosition: Int
+    ) {
+        exoPlayerHelper.initializePlayer(songs[songPosition].songUri)
+        exoPlayerHelper.play()
     }
 }
 

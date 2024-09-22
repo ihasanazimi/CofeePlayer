@@ -1,33 +1,44 @@
 package ir.ha.cofeeplayer.screens
 
 import android.util.Log
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
 class CoroutineTimer(
-    private val totalSeconds: Int,
+    private val totalSeconds: Int ,
     private val onTick: (Int) -> Unit,
     private val onFinished: () -> Unit
 ) {
+
+    private var total: Int = 0
     private var currentSecond: Int = 0
     private var isPaused: Boolean = false
     private var job: Job? = null
     private var coroutineContext: CoroutineContext = Dispatchers.Main
 
+    init {
+        total = totalSeconds
+    }
+
     // Start the timer
-    fun start() {
+    fun start(newTime : Int = 0) {
         job?.cancel()
         job = CoroutineScope(coroutineContext).launch {
-            for (second in currentSecond until totalSeconds) {
+            val tNewTime = if (newTime != 0) newTime else total
+            for (second in currentSecond until tNewTime) {
                 if (isPaused) {
                     break // Stop the loop if paused
                 }
-                Log.i(TAG, "current time in the time is $currentSecond")
+                Log.i(TAG, "current time in the time is $currentSecond/$tNewTime")
                 onTick(second) // Callback with the current second
                 currentSecond = second + 1
                 delay(1000L) // Delay for 1 second
             }
-            if (currentSecond == totalSeconds) {
+            if (currentSecond == tNewTime) {
                 onFinished() // Callback when timer is finished
             }
         }

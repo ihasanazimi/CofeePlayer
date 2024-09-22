@@ -143,7 +143,7 @@ class MainActivity : ComponentActivity() {
                                             playSong(exoPlayerHelper, songs, songPosition)
                                             currentLeftTime = 0
                                             timer.stop()
-                                            timer.start()
+                                            timer.start(songs[songPosition].songDuration)
                                         }
                                     },
                                     onPlayPauseClicked = {

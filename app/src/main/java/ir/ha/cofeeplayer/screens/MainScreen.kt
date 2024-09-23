@@ -26,7 +26,7 @@ fun MainScreen(
     isRepeatOn: Boolean,
     isShuffleOn: Boolean,
     isFavorite: Boolean,
-    currentLeftTime: Int,
+    currentLeftTime: Float,
     onPlayPauseClicked: () -> Unit = {},
     onNextClicked: () -> Unit = {},
     onPreviousClicked: () -> Unit = {},
@@ -38,6 +38,8 @@ fun MainScreen(
     onMuteClicked: () -> Unit = {},
     onSoundBarClick: () -> Unit = {},
     onSongClick: (Int) -> Unit = { _ -> },
+    sliderPosition : (Float) -> Unit ,
+    isUserSliding  : (Boolean) -> Unit,
 ) {
 
     val context = LocalContext.current // Get context in the composable
@@ -92,6 +94,12 @@ fun MainScreen(
                     },
                     onPlayPauseClicked = {
                         onPlayPauseClicked.invoke()
+                    },
+                    sliderPosition = { p ->
+                        sliderPosition.invoke(p)
+                    },
+                    isUserSliding = { isSliding ->
+                        isUserSliding.invoke(isSliding)
                     }
                 )
 

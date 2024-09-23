@@ -17,9 +17,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,6 +42,7 @@ import ir.ha.cofeeplayer.data.database.SongEntity
 import ir.ha.cofeeplayer.screens.CoroutineTimer
 import ir.ha.cofeeplayer.screens.MainScreen
 import ir.ha.cofeeplayer.ui.theme.CofeePlayerTheme
+import kotlinx.coroutines.delay
 import okhttp3.internal.notify
 
 
@@ -101,18 +104,27 @@ class MainActivity : ComponentActivity() {
 
                                 val songs by rememberSaveable{ mutableStateOf(data?: arrayListOf()) }
                                 var songPosition by remember { mutableIntStateOf(if(songs.isEmpty()) -1 else 0) }
-                                var currentLeftTime by remember { mutableIntStateOf(0) }
+
+                                val exoPlayer = remember { exoPlayerHelper.exoObject() }
+                                var sliderPosition by remember { mutableFloatStateOf(0f) }
+                                var isUserSliding by remember { mutableStateOf(false) }
+                                val duration = remember { exoPlayerHelper.exoObject()?.duration?.coerceAtLeast(songs[songPosition].songDuration.toLong()) } // Avoid division by zero
+                                val currentPosition = exoPlayerHelper.exoObject()?.currentPosition
 
 
-                                val timer = remember { CoroutineTimer(
-                                    totalSeconds = songs[songPosition].songDuration,
-                                    onTick = {
-                                        currentLeftTime = it
-                                    },
-                                    onFinished = {
-                                        currentLeftTime = 0
-                                        isPlaying = false
-                                    })
+
+                                // Observe ExoPlayer's progress in a coroutine and update the slider
+                                LaunchedEffect(exoPlayerHelper.exoObject()) {
+                                    while (true) {
+                                        if (!isUserSliding) {
+                                            exoPlayer?.let { player ->
+                                                val currentPos = player.currentPosition
+                                                val dur = player.duration.coerceAtLeast(1L) // Ensure duration is at least 1
+                                                sliderPosition = currentPos / dur.toFloat()
+                                            }
+                                        }
+                                        delay(1000L) // Update every second
+                                    }
                                 }
 
 
@@ -124,7 +136,7 @@ class MainActivity : ComponentActivity() {
                                     isShuffleOn = isShuffleOn,
                                     isFavorite = isFavorite,
                                     isMuteOn = isMuteOn,
-                                    currentLeftTime = currentLeftTime,
+                                    currentLeftTime = sliderPosition,
                                     onRepeatClicked = {
                                         isRepeatOn = isRepeatOn.not()
                                     },
@@ -159,22 +171,32 @@ class MainActivity : ComponentActivity() {
                                             if (isPlaying.not()) isPlaying = true
                                             songPosition = pos
                                             playSong(context , exoPlayerHelper, songs, songPosition)
-                                            currentLeftTime = 0
-                                            timer.stop()
-                                            timer.start(songs[songPosition].songDuration) }
+                                            sliderPosition = 0f
+                                            /*timer.stop()
+                                            timer.start(songs[songPosition].songDuration)*/
+                                        }
                                     },
                                     onPlayPauseClicked = {
                                         if (isPlaying) {
                                             isPlaying = false
                                             exoPlayerHelper.pause()
-                                            timer.pause()
+//                                            timer.pause()
                                         }
                                         else {
                                             isPlaying = true
                                             exoPlayerHelper.play()
-                                            timer.resume()
+//                                            timer.resume()
                                         }
                                     },
+                                    sliderPosition = { p ->
+                                        sliderPosition = p
+                                    },
+                                    isUserSliding = { isSliding ->
+                                       isUserSliding = isSliding
+                                        if (isSliding.not()) {
+                                            exoPlayer?.seekTo(sliderPosition.toLong())
+                                        }
+                                    }
                                 )
                             }
                         }

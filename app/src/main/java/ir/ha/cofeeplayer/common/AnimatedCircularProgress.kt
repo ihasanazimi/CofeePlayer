@@ -107,7 +107,7 @@ fun LinearProgressBar(
     // animateFloatAsState to animate the progress change
     val animatedProgress by animateFloatAsState(
         targetValue = progress, // Target progress value
-        animationSpec = tween(1000), label = "" // Animation duration in milliseconds
+        animationSpec = tween(500), label = "" // Animation duration in milliseconds
     )
 
     Log.i(BASIC_TAG, "LinearProgressBar: $animatedProgress")
@@ -116,11 +116,11 @@ fun LinearProgressBar(
         modifier = modifier,
         value = animatedProgress, // Use the animated value for smooth transition
         onValueChange = {
-            onValueChange?.invoke(it)
+            onValueChange.invoke(it)
         },
         valueRange = valueRange,
         colors = colors,
-        onValueChangeFinished = onValueChangeFinished
+        onValueChangeFinished = onValueChangeFinished,
     )
 }
 

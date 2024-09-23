@@ -25,10 +25,10 @@ class CoroutineTimer(
     }
 
     // Start the timer
-    fun start(newTime : Int = 0) {
+    fun start(newTotalTime : Int = 0) {
         job?.cancel()
         job = CoroutineScope(coroutineContext).launch {
-            val tNewTime = if (newTime != 0) newTime else total
+            val tNewTime = if (newTotalTime != 0) newTotalTime else total
             for (second in currentSecond until tNewTime) {
                 if (isPaused) {
                     break // Stop the loop if paused
@@ -50,9 +50,10 @@ class CoroutineTimer(
     }
 
     // Resume the timer from where it was paused
-    fun resume() {
+    fun resume(fromThisSecond : Int = -1 ) {
         if (isPaused) {
             isPaused = false
+            if (fromThisSecond != -1) currentSecond = fromThisSecond
             start() // Restart the timer from the currentSecond
         }
     }

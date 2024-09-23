@@ -30,4 +30,16 @@ class ExoPlayerHelper(private val context: Context) {
         exoPlayer?.release()
         exoPlayer = null
     }
+
+    fun isPaying() = exoPlayer?.isPlaying
+
+    fun duration() = exoPlayer?.duration
+
+    fun mute(mute : Boolean) {
+        exoPlayer?.setDeviceMuted(mute)
+    }
+
+
+    fun exoObject() : SimpleExoPlayer? = exoPlayer
+
 }
